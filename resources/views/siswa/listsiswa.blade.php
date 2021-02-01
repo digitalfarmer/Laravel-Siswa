@@ -1,63 +1,57 @@
 @extends('layouts.master')
 @section('title','Daftar Siswa')
-@section('js')
-$(".alert").fadeTo(2000, 500).slideUp(500, function(){
-    $(".alert").slideUp(500);
-});
-@endsection
+
 @section('content')
-    
-
-   
-    @if (session('sukses'))
-        <div class="alert alert-success" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            {{session('sukses')}}
-        </div>
-    @endif
-        
     <div class="row">
-        <div class="col-6">
-            <h1>Data Peserta Didik</h1>
-        </div>
-        <div class="col-6">
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary float-right btm-sm" data-toggle="modal" data-target="#exampleModal">
+        <div class="col md-12">
+            {{-- <h1 class="page-title">Daftar Peserta Didik</h1> --}}
 
-                Input
-            </button>
+            <div class="panel">
+				<div class="panel-heading">
+                    <h3 class="panel-title">Daftar Siswa</h3>
+                    <div class="right">
+                        <button type="button" class="btn" data-toggle="modal" data-target="#exampleModal"><i class="fa fa-plus-circle"></i> Input </button>
+                    </div>
+                    
+				</div>
+				<div class="panel-body">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+                                <th>Nama Depan</th>                                      
+                                <th>Nama Belakang</th>
+                                <th>Jenis Kelamin</th>
+                                <th>Agama</th>
+                                <th>Alamat</th>
+                                <th>Aksi</th>
+                            </tr>
+						</thead>
+						<tbody>
+							
+                                @foreach ($siswas as $siswa)
+                                <tr>
+                                    <td>{{$siswa->nama_depan}}</td>
+                                    <td>{{$siswa->nama_belakang}}</td>
+                                    <td>{{$siswa->jenis_kelamin}}</td>
+                                    <td>{{$siswa->agama}}</td>
+                                    <td>{{$siswa->alamat}}</td>
+                                    <td>
+                                        <a href="/siswa/{{$siswa->id}}" class="btn btn-warning btn-sm">Edit</a>
+                                        <a href="/siswa/{{$siswa->id}}/delete" class="btn btn-danger btn-sm" onclick="return confirm('Yakin Mau di hapus?')">Delete</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                           
+						</tbody>
+					</table>
+				</div>
+            </div>
             
-            
         </div>
-        <table class="table table-hover">
-            <tr>
-                <th>Nama thDepan</th>                                      
-                <th>Nama Belakang</th>
-                <th>Jenis Kelamin</th>
-                <th>Agama</th>
-                <th>Alamat</th>
-                <th>Aksi</th>
-            </tr>
-            @foreach ($siswas as $siswa)
-            <tr>
-                <td>{{$siswa->nama_depan}}</td>
-                <td>{{$siswa->nama_belakang}}</td>
-                <td>{{$siswa->jenis_kelamin}}</td>
-                <td>{{$siswa->agama}}</td>
-                <td>{{$siswa->alamat}}</td>
-                <td>
-                    <a href="/siswa/{{$siswa->id}}" class="btn btn-warning btn-sm">Edit</a>
-                    <a href="/siswa/{{$siswa->id}}/delete" class="btn btn-danger btn-sm" onclick="return confirm('Yakin Mau di hapus?')">Delete</a>
-                </td>
-            </tr>
-            @endforeach
-         </table>
-    </div>
-    
-
-
-
-<!-- Modal Input-->
+        
+    </div> 
+    {{-- end row  --}}
+    <!-- Modal Input-->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -84,7 +78,8 @@ $(".alert").fadeTo(2000, 500).slideUp(500, function(){
                 </div>
                 {{-- jenis kelamin --}}
                 <div class="mb-3">
-                    <select name="jenis_kelamin" class="custom-select custom-select-lg mb-3" aria-label="Default select example">
+                    <label for="exampleInputEmail1" class="form-label">Jenis Kelamin</label>
+                    <select name="jenis_kelamin" class="custom-select form-control custom-select-lg mb-3" aria-label="Default select example">
                         <option selected>Pilih Jenis Kelamin</option>
                         <option value="L">Laki-Laki</option>
                         <option value="P">Perempuan</option>
@@ -115,5 +110,4 @@ $(".alert").fadeTo(2000, 500).slideUp(500, function(){
     </div>
 </div>
 <!-- EndModal -->
-
 @endsection
