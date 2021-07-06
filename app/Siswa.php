@@ -40,7 +40,7 @@ class Siswa extends Model
             $num++;
 
         }
-        return round($total/$num);
+       // return round($total/$num);
     }
     public function nama_lengkap(){
         return $this->nama_depan.' '.$this->nama_belakang;
