@@ -2,11 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SiswasExport;
 use Illuminate\Http\Request;
 use App\Siswa;
+use App\User;
+use App\maple;
+use Maatwebsite\Excel\Facades\Excel;
+use PDF;
+
 
 class SiswaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -31,11 +41,33 @@ class SiswaController extends Controller
      */
     public function create( Request $request)
     {
-       
-        //submit siswa form
-        Siswa::create($request->all());
-            return redirect('/siswa')->with('sukses','Data Berhasil di Simpan');
-        
+        //validation
+        $this->validate($request, [
+            'nama_depan'=>'required|min:5',
+            'email'=>'required|email|unique:users',
+            'avatar'=>'mimes:jpg,png',
+        ]);
+        //INsert Ke table User
+        $user=  new User();
+        $user->role='siswa';
+        $user->name=$request->nama_depan;
+        $user->email= $request->email;
+        $user->password= bcrypt('user123');
+        $user->remember_token = str_random(60);
+        $user->save();
+
+        //Insert ke Table Siswa
+        $request->request->add(['user_id'=>$user->id]);
+        $siswa = Siswa::create($request->all());
+        if ($request->hasFile('avatar')) {
+            # code...
+            $request->file('avatar')->move('images/', $request->file('avatar')->getClientOriginalName());
+            $siswa->avatar = $request->file('avatar')->getClientOriginalName();
+            $siswa->save();
+        }
+
+        return redirect('/siswa')->with('sukses','Data Berhasil di Simpan');
+
     }
 
     /**
@@ -66,12 +98,12 @@ class SiswaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Siswa $siswa)
     {
         //
-        $siswa= Siswa::find($id);
-        return view('siswa.editsiswa')->with('siswa',$siswa);
-        
+        //$siswa= Siswa::find($id);
+        return view('siswa.editsiswa',['siswa'=>$siswa]);
+
     }
 
     /**
@@ -86,6 +118,12 @@ class SiswaController extends Controller
         //
         $siswa= Siswa::find($id);
         $siswa->update($request->all());
+        if ($request->hasFile('avatar')) {
+            # code...
+            $request->file('avatar')->move('images/', $request->file('avatar')->getClientOriginalName());
+            $siswa->avatar = $request->file('avatar')->getClientOriginalName();
+            $siswa->save();
+        }
         return redirect('/siswa')->with('sukses','Data Berhasil di Update');
     }
 
@@ -102,4 +140,64 @@ class SiswaController extends Controller
         $siswa->delete($siswa);
         return redirect('/siswa')->with('sukses','Data Berhasil di Delete');
     }
+    public function profile(Siswa $siswa)
+    {
+        # code...
+
+        $matapelajaran= maple::all();
+
+        //data untuk chart
+        $categories=[];
+        $data=[];
+        foreach ($matapelajaran as $mp){
+            if($siswa->maple()->wherePivot('maple_id',$mp->id)->first()){
+                $categories[]=$mp->nama;
+                $data[]=$siswa->maple()->wherePivot('maple_id',$mp->id)->first()->pivot->nilai;
+            }
+        }
+
+        //return view('siswa.profile-siswa')->with('profilesiswa',$profilesiswa);
+        return view('siswa.profile-siswa',
+            ['siswa'=>$siswa,
+                'matapelajaran'=>$matapelajaran,
+                'categories'=>$categories,
+                'data'=>$data
+            ]
+        );
+    }
+        //add nilai
+    public function addnilai(Request $request, $idsiswa){
+        //dd($request->all());
+        $siswa = Siswa::find($idsiswa);
+        if($siswa->maple()->where('maple_id',$request->mapel)->exists()){
+            return redirect('/siswa/'.$idsiswa.'/profile')->with('error','Matapelajaran sudah di tambahkan');
+        }
+        $siswa->maple()->attach($request->maple,['nilai'=>$request->nilai]);
+        return redirect('/siswa/'.$idsiswa.'/profile')->with('sukses','Nilai Berhasil di Simpan');
+    }
+    protected function deletenilai($idsiswa,$idmapel)
+    {
+        $siswa = Siswa::find($idsiswa);
+        $siswa->maple()->detach($idmapel);
+        return redirect()->back()->with('sukses','Data Nilai berhasil di hapus');
+    }
+
+
+//export to excel
+    public function export()
+    {
+        //$filesiswa=Excel::download( new SiswasExport, 'daftarsiswa.xlsx');
+       // dd($filesiswa);
+        return Excel::download( new SiswasExport, 'daftarsiswa.xlsx');
+    }
+    //exporttopdf
+    public function exportpdf()
+    {
+        $siswa=Siswa::all();
+
+        //$pdf = PDF::loadHTML($siswa);
+        $pdf = PDF::loadView('export.siswapdf',['siswa'=>$siswa]);
+        return $pdf->download('siswa.pdf');
+    }
+
 }

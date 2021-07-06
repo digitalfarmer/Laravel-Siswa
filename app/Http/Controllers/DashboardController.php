@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Siswa;
 
 class DashboardController extends Controller
 {
@@ -14,6 +15,14 @@ class DashboardController extends Controller
     public function index()
     {
         //
+//        $siswas= Siswa::all();
+//        //helper laravel
+//        $siswas->map(function($siswa){
+//            $siswa->rata2nilai= $siswa->rerata();
+//            return $siswa;
+//        });
+//        $siswas=$siswas->sortByDesc('rata2nilai')->take(5);
+//        //dd($siswas);
         return view('dashboard.index');
     }
 

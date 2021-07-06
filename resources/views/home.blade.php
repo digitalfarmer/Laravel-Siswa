@@ -7,6 +7,7 @@
 	<title>Home</title>
 </head>
 <body>
-	Hello Guys
+	<h1>Home</h1>
+<p>Under Construction</p>
 </body>
 </html>
